@@ -1,5 +1,9 @@
 # mexl
 
+[![build](https://github.com/stevecallear/mexl/actions/workflows/build.yml/badge.svg)](https://github.com/stevecallear/mexl/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/stevecallear/mexl/graph/badge.svg?token=3JBUN06BOD)](https://codecov.io/gh/stevecallear/mexl)
+[![Go Report Card](https://goreportcard.com/badge/github.com/stevecallear/mexl)](https://goreportcard.com/report/github.com/stevecallear/mexl)
+
 `mexl` is a basic expression language. It is heavily informed by the [Writing An Intepreter/Compiler In Go](https://interpreterbook.com/) books by Thorsten Ball and was primarily written as a learning exercise.
 
 It is intended to offer the simplicity of [`rules`](https://github.com/nikunjy/rules) with some of the performance and flexibility of [`expr`](https://github.com/expr-lang/expr). With that said, if I was deploying an expression language to production it would definitely be the latter unless there was a specific syntactic or functional need.
