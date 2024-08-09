@@ -15,6 +15,8 @@ var builtIns = map[string]types.Func{
 
 		var l int
 		switch args[0].Type() {
+		case types.TypeNull:
+			l = 0
 		case types.TypeString:
 			l = len(args[0].(*types.String).Value)
 		case types.TypeArray:
@@ -29,34 +31,36 @@ var builtIns = map[string]types.Func{
 	},
 
 	"lower": func(args ...types.Object) (types.Object, error) {
-		if err := expectArgs(args, types.TypeString); err != nil {
-			return nil, err
+		if len(args) != 1 {
+			return nil, fmt.Errorf("wrong number of arguments: %d, expected 1", len(args))
 		}
 
-		return &types.String{
-			Value: strings.ToLower(args[0].(*types.String).Value),
-		}, nil
+		switch args[0].Type() {
+		case types.TypeNull:
+			return objNull, nil
+		case types.TypeString:
+			return &types.String{
+				Value: strings.ToLower(args[0].(*types.String).Value),
+			}, nil
+		default:
+			return nil, fmt.Errorf("invalid argument: %T", args[0])
+		}
 	},
 
 	"upper": func(args ...types.Object) (types.Object, error) {
-		if err := expectArgs(args, types.TypeString); err != nil {
-			return nil, err
+		if len(args) != 1 {
+			return nil, fmt.Errorf("wrong number of arguments: %d, expected 1", len(args))
 		}
 
-		return &types.String{
-			Value: strings.ToUpper(args[0].(*types.String).Value),
-		}, nil
+		switch args[0].Type() {
+		case types.TypeNull:
+			return objNull, nil
+		case types.TypeString:
+			return &types.String{
+				Value: strings.ToUpper(args[0].(*types.String).Value),
+			}, nil
+		default:
+			return nil, fmt.Errorf("invalid argument: %T", args[0])
+		}
 	},
-}
-
-func expectArgs(args []types.Object, types ...types.Type) error {
-	if len(args) != len(types) {
-		return fmt.Errorf("wrong number of arguments: %d, expected %d", len(args), len(types))
-	}
-	for i, v := range types {
-		if args[i].Type() != v {
-			return fmt.Errorf("invalid type at %d: %s, expected %s", i, args[i].Type(), v)
-		}
-	}
-	return nil
 }

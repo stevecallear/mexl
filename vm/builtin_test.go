@@ -19,6 +19,11 @@ func TestBuiltIn(t *testing.T) {
 			err:   true,
 		},
 		{
+			name:  "len null",
+			input: "len(null)",
+			exp:   0,
+		},
+		{
 			name:  "len string",
 			input: `len("abc")`,
 			exp:   3,
@@ -39,8 +44,13 @@ func TestBuiltIn(t *testing.T) {
 			exp: 1,
 		},
 		{
-			name:  "lower args error",
+			name:  "lower args count error",
 			input: `lower("A", "b")`,
+			err:   true,
+		},
+		{
+			name:  "lower arg type error",
+			input: `lower(1)`,
 			err:   true,
 		},
 		{
@@ -49,7 +59,17 @@ func TestBuiltIn(t *testing.T) {
 			exp:   "abc",
 		},
 		{
-			name:  "upper args error",
+			name:  "lower (null)",
+			input: "lower(null)",
+			exp:   nil,
+		},
+		{
+			name:  "upper args count error",
+			input: `upper("A", "b")`,
+			err:   true,
+		},
+		{
+			name:  "upper arg type error",
 			input: `upper(1)`,
 			err:   true,
 		},
@@ -57,6 +77,11 @@ func TestBuiltIn(t *testing.T) {
 			name:  "upper",
 			input: `upper("abc")`,
 			exp:   "ABC",
+		},
+		{
+			name:  "upper (null)",
+			input: "upper(null)",
+			exp:   nil,
 		},
 		{
 			name:  "custom",
