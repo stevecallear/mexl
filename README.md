@@ -10,7 +10,9 @@ It is intended to offer the simplicity of [`rules`](https://github.com/nikunjy/r
 
 
 ## Getting Started
-`go get github.com/stevecallear/mexl@latest`
+```
+go get github.com/stevecallear/mexl@latest
+```
 
 ```
 const input = `lower(user.email) ew "@email.com" or "beta" in user.roles`
