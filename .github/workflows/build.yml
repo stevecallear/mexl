@@ -23,10 +23,9 @@ jobs:
           go-version: "${{ matrix.go }}"
       - name: Build
         run: |
-          go vet .
-          go test -race -coverprofile=coverage.txt -covermode=atomic
+          go vet ./...
+          go test ./... -race -coverprofile=coverage.out -covermode=atomic
       - name: Coverage
         uses: codecov/codecov-action@v4.0.1
         with:
-          files: ./coverage.txt
           token: ${{ secrets.CODECOV_TOKEN }}
