@@ -95,7 +95,7 @@ func (vm *VM) run() (err error) {
 				return err
 			}
 
-		case OpFetch:
+		case OpGlobal:
 			idx := readUint8(vm.program.Instructions[i+1:])
 			i++
 			vm.execIdentifier(vm.program.Identifiers[idx])

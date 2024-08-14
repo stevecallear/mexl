@@ -41,7 +41,7 @@ const (
 	OpEndsWith
 	OpIn
 	OpIndex
-	OpFetch
+	OpGlobal
 	OpMember
 	OpCall
 	OpJumpIfTrue
@@ -73,7 +73,7 @@ var definitions = map[Opcode]*Definition{
 	OpEndsWith:       {"OpEndsWith", []int{}},
 	OpIn:             {"OpIn", []int{}},
 	OpIndex:          {"OpIndex", []int{}},
-	OpFetch:          {"OpFetch", []int{1}},
+	OpGlobal:         {"OpGlobal", []int{1}},
 	OpMember:         {"OpMember", []int{1}},
 	OpCall:           {"OpCall", []int{1}},
 	OpJumpIfTrue:     {"OpJumpIfTrue", []int{2}},

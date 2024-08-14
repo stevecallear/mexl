@@ -544,7 +544,7 @@ func TestGlobals(t *testing.T) {
 			exp: expectation{
 				identifiers: []string{"x"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 				},
 			},
 		},
@@ -555,7 +555,7 @@ func TestGlobals(t *testing.T) {
 				constants:   []any{2},
 				identifiers: []string{"x"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 					vm.Make(vm.OpConstant, 0),
 					vm.Make(vm.OpLess),
 				},
@@ -575,7 +575,7 @@ func TestCallExpressions(t *testing.T) {
 				constants:   []any{"test"},
 				identifiers: []string{"upper"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 					vm.Make(vm.OpConstant, 0),
 					vm.Make(vm.OpCall, 1),
 				},
@@ -594,7 +594,7 @@ func TestNull(t *testing.T) {
 			exp: expectation{
 				identifiers: []string{"email"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 					vm.Make(vm.OpNull),
 					vm.Make(vm.OpEqual),
 				},
@@ -644,7 +644,7 @@ func TestMapAccess(t *testing.T) {
 			exp: expectation{
 				identifiers: []string{"x"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 				},
 			},
 		},
@@ -654,7 +654,7 @@ func TestMapAccess(t *testing.T) {
 			exp: expectation{
 				identifiers: []string{"x", "y", "z"},
 				instructions: []vm.Instructions{
-					vm.Make(vm.OpFetch, 0),
+					vm.Make(vm.OpGlobal, 0),
 					vm.Make(vm.OpMember, 1),
 					vm.Make(vm.OpMember, 2),
 				},

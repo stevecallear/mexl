@@ -77,7 +77,7 @@ func (c *Compiler) compile(n ast.Node) (err error) {
 		c.emit(vm.OpArray, len(node.Elements))
 
 	case *ast.Identifier:
-		c.emit(vm.OpFetch, c.addIdentifier(node.Value))
+		c.emit(vm.OpGlobal, c.addIdentifier(node.Value))
 
 	case *ast.IndexExpression:
 		if err = c.compile(node.Left); err != nil {
