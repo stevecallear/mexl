@@ -10,8 +10,8 @@ import (
 
 func TestIdentifierExpression(t *testing.T) {
 	const input = "abc"
-	s := parse(input)
-	assertIdentifierExpression(t, s.Expression, "abc")
+	n := parse(input)
+	assertIdentifier(t, n, "abc")
 }
 
 func TestLiteral(t *testing.T) {
@@ -32,8 +32,8 @@ func TestLiteral(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		s := parse(tt.input)
-		assertLiteral(t, s.Expression, tt.exp)
+		n := parse(tt.input)
+		assertLiteral(t, n, tt.exp)
 	}
 }
 
@@ -49,18 +49,18 @@ func TestPrefixExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		s := parse(tt.input)
+		n := parse(tt.input)
 
-		pe, ok := s.Expression.(*ast.PrefixExpression)
+		e, ok := n.(*ast.PrefixExpression)
 		if !ok {
-			t.Fatalf("expected prefix expression, got %T", s.Expression)
+			t.Fatalf("expected prefix expression, got %T", n)
 		}
 
-		if pe.Operator != tt.operator {
-			t.Errorf("got %s, expected %s", pe.Operator, tt.operator)
+		if e.Operator != tt.operator {
+			t.Errorf("got %s, expected %s", e.Operator, tt.operator)
 		}
 
-		assertLiteral(t, pe.Right, tt.exp)
+		assertLiteral(t, e.Right, tt.exp)
 	}
 }
 
@@ -107,8 +107,8 @@ func TestInfixExpression(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		s := parse(tt.input)
-		assertInfixExpression(t, s.Expression, tt.left, tt.operator, tt.right)
+		n := parse(tt.input)
+		assertInfixExpression(t, n, tt.left, tt.operator, tt.right)
 	}
 }
 
@@ -116,20 +116,20 @@ func TestCallExpression(t *testing.T) {
 	const input = `fn(1, "a")`
 	args := []any{1, "a"}
 
-	s := parse(input)
+	n := parse(input)
 
-	c, ok := s.Expression.(*ast.CallExpression)
+	e, ok := n.(*ast.CallExpression)
 	if !ok {
-		t.Fatalf("got %T, expected member expression", s)
+		t.Fatalf("got %T, expected member expression", n)
 	}
 
-	assertIdentifierExpression(t, c.Function, "fn")
+	assertIdentifier(t, e.Function, "fn")
 
-	if al, el := len(c.Arguments), len(args); al != el {
+	if al, el := len(e.Arguments), len(args); al != el {
 		t.Fatalf("got %d arguments, expected %d", al, el)
 	}
 
-	for i, a := range c.Arguments {
+	for i, a := range e.Arguments {
 		assertLiteral(t, a, args[i])
 	}
 }
@@ -139,15 +139,15 @@ func TestIndexExpression(t *testing.T) {
 	arr := []any{1, 2}
 	idx := 1
 
-	s := parse(input)
+	n := parse(input)
 
-	m, ok := s.Expression.(*ast.IndexExpression)
+	e, ok := n.(*ast.IndexExpression)
 	if !ok {
-		t.Fatalf("got %T, expected member expression", s)
+		t.Fatalf("got %T, expected index expression", n)
 	}
 
-	assertArrayLiteral(t, m.Left, arr)
-	assertLiteral(t, m.Index, idx)
+	assertArrayLiteral(t, e.Left, arr)
+	assertLiteral(t, e.Index, idx)
 }
 
 func TestMemberExpression(t *testing.T) {
@@ -155,15 +155,15 @@ func TestMemberExpression(t *testing.T) {
 	const left = "x"
 	const member = "y"
 
-	s := parse(input)
+	n := parse(input)
 
-	m, ok := s.Expression.(*ast.MemberExpression)
+	e, ok := n.(*ast.MemberExpression)
 	if !ok {
-		t.Fatalf("got %T, expected member expression", s)
+		t.Fatalf("got %T, expected member expression", n)
 	}
 
-	assertIdentifierExpression(t, m.Left, left)
-	assertIdentifierExpression(t, m.Member, member)
+	assertIdentifier(t, e.Left, left)
+	assertIdentifier(t, e.Member, member)
 }
 
 func TestOperatorPrecedence(t *testing.T) {
@@ -205,7 +205,7 @@ func TestOperatorPrecedence(t *testing.T) {
 	}
 }
 
-func assertIdentifierExpression(t *testing.T, e ast.Expression, value string) {
+func assertIdentifier(t *testing.T, e ast.Node, value string) {
 	t.Helper()
 
 	i, ok := e.(*ast.Identifier)
@@ -225,57 +225,57 @@ func assertIdentifierExpression(t *testing.T, e ast.Expression, value string) {
 	}
 }
 
-func assertInfixExpression(t *testing.T, e ast.Expression, left any, operator string, right any) {
+func assertInfixExpression(t *testing.T, n ast.Node, left any, operator string, right any) {
 	t.Helper()
 
-	ie, ok := e.(*ast.InfixExpression)
+	e, ok := n.(*ast.InfixExpression)
 	if !ok {
-		t.Fatalf("got %T, expected infix expression", e)
+		t.Fatalf("got %T, expected infix expression", n)
 		return
 	}
 
-	if !assertLiteral(t, ie.Left, left) {
+	if !assertLiteral(t, e.Left, left) {
 		return
 	}
 
-	if ie.Operator != operator {
-		t.Errorf("got %s, expected %s", ie.Operator, operator)
+	if e.Operator != operator {
+		t.Errorf("got %s, expected %s", e.Operator, operator)
 		return
 	}
 
-	assertLiteral(t, ie.Right, right)
+	assertLiteral(t, e.Right, right)
 }
 
-func assertLiteral(t *testing.T, e ast.Expression, value any) bool {
+func assertLiteral(t *testing.T, n ast.Node, value any) bool {
 	t.Helper()
 
 	switch tv := value.(type) {
 	case string:
-		return assertStringLiteral(t, e, tv)
+		return assertStringLiteral(t, n, tv)
 	case int:
-		return assertIntegerLiteral(t, e, int64(tv))
+		return assertIntegerLiteral(t, n, int64(tv))
 	case int64:
-		return assertIntegerLiteral(t, e, tv)
+		return assertIntegerLiteral(t, n, tv)
 	case float64:
-		return assertFloatLiteral(t, e, tv)
+		return assertFloatLiteral(t, n, tv)
 	case bool:
-		return assertBoolean(t, e, tv)
+		return assertBoolean(t, n, tv)
 	case []any:
-		return assertArrayLiteral(t, e, tv)
+		return assertArrayLiteral(t, n, tv)
 	case nil:
-		return assertNull(t, e)
+		return assertNull(t, n)
 	default:
 		t.Fatalf("unexpected type: %T", value)
 		return false
 	}
 }
 
-func assertIntegerLiteral(t *testing.T, e ast.Expression, value int64) bool {
+func assertIntegerLiteral(t *testing.T, n ast.Node, value int64) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.IntegerLiteral)
+	l, ok := n.(*ast.IntegerLiteral)
 	if !ok {
-		t.Errorf("got %T, expected integer literal", e)
+		t.Errorf("got %T, expected integer literal", n)
 		return false
 	}
 
@@ -292,12 +292,12 @@ func assertIntegerLiteral(t *testing.T, e ast.Expression, value int64) bool {
 	return true
 }
 
-func assertFloatLiteral(t *testing.T, e ast.Expression, value float64) bool {
+func assertFloatLiteral(t *testing.T, n ast.Node, value float64) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.FloatLiteral)
+	l, ok := n.(*ast.FloatLiteral)
 	if !ok {
-		t.Errorf("got %T, expected float literal", e)
+		t.Errorf("got %T, expected float literal", n)
 		return false
 	}
 
@@ -309,12 +309,12 @@ func assertFloatLiteral(t *testing.T, e ast.Expression, value float64) bool {
 	return true
 }
 
-func assertBoolean(t *testing.T, e ast.Expression, value bool) bool {
+func assertBoolean(t *testing.T, n ast.Node, value bool) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.Boolean)
+	l, ok := n.(*ast.Boolean)
 	if !ok {
-		t.Errorf("got %T, expected integer literal", e)
+		t.Errorf("got %T, expected integer literal", n)
 		return false
 	}
 
@@ -331,12 +331,12 @@ func assertBoolean(t *testing.T, e ast.Expression, value bool) bool {
 	return true
 }
 
-func assertStringLiteral(t *testing.T, e ast.Expression, value string) bool {
+func assertStringLiteral(t *testing.T, n ast.Node, value string) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.StringLiteral)
+	l, ok := n.(*ast.StringLiteral)
 	if !ok {
-		t.Errorf("got %T, expected string literal", e)
+		t.Errorf("got %T, expected string literal", n)
 		return false
 	}
 
@@ -353,12 +353,12 @@ func assertStringLiteral(t *testing.T, e ast.Expression, value string) bool {
 	return true
 }
 
-func assertArrayLiteral(t *testing.T, e ast.Expression, value []any) bool {
+func assertArrayLiteral(t *testing.T, n ast.Node, value []any) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.ArrayLiteral)
+	l, ok := n.(*ast.ArrayLiteral)
 	if !ok {
-		t.Errorf("got %T, expected array literal", e)
+		t.Errorf("got %T, expected array literal", n)
 		return false
 	}
 
@@ -375,27 +375,27 @@ func assertArrayLiteral(t *testing.T, e ast.Expression, value []any) bool {
 	return true
 }
 
-func assertNull(t *testing.T, e ast.Expression) bool {
+func assertNull(t *testing.T, n ast.Node) bool {
 	t.Helper()
 
-	l, ok := e.(*ast.Null)
+	nn, ok := n.(*ast.Null)
 	if !ok {
-		t.Errorf("got %T, expected null", e)
+		t.Errorf("got %T, expected null", n)
 		return false
 	}
 
-	if l.TokenLiteral() != "null" {
-		t.Errorf("got %s, expected null", l.TokenLiteral())
+	if nn.TokenLiteral() != "null" {
+		t.Errorf("got %s, expected null", nn.TokenLiteral())
 		return false
 	}
 
 	return true
 }
 
-func parse(input string) *ast.ExpressionStatement {
-	s, err := parser.New(input).Parse()
+func parse(input string) ast.Node {
+	n, err := parser.New(input).Parse()
 	if err != nil {
 		panic(err)
 	}
-	return s.(*ast.ExpressionStatement)
+	return n
 }

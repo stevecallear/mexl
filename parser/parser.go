@@ -23,8 +23,8 @@ type (
 		errors       []string
 	}
 
-	prefixParseFn func() ast.Expression
-	infixParseFn  func(ast.Expression) ast.Expression
+	prefixParseFn func() ast.Node
+	infixParseFn  func(ast.Node) ast.Node
 )
 
 const (
@@ -77,8 +77,9 @@ func NewWithLexer(l Lexer) *Parser {
 	return p
 }
 
-func (p *Parser) Parse() (ast.Statement, error) {
-	s := p.parseExpressionStatement()
+func (p *Parser) Parse() (ast.Node, error) {
+	n := p.parseExpression(precedenceLowest)
+
 	if p.peekToken.Type != token.EOF {
 		p.error(fmt.Sprintf("multiple expressions found, next: %d", p.peekToken.Type))
 	}
@@ -91,18 +92,10 @@ func (p *Parser) Parse() (ast.Statement, error) {
 		return nil, errors.New(b.String())
 	}
 
-	return s, nil
+	return n, nil
 }
 
-func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	s := &ast.ExpressionStatement{
-		Token:      p.currentToken,
-		Expression: p.parseExpression(precedenceLowest),
-	}
-	return s
-}
-
-func (p *Parser) parseExpression(precedence int) ast.Expression {
+func (p *Parser) parseExpression(precedence int) ast.Node {
 	fn, ok := p.getPrefixParseFn(p.currentToken.Type)
 	if !ok {
 		p.error(fmt.Sprintf("no prefix parse function: %s", p.currentToken.Literal))
@@ -170,7 +163,7 @@ func (p *Parser) getInfixParseFn(t token.Type) (infixParseFn, bool) {
 	}
 }
 
-func (p *Parser) parsePrefixExpression() ast.Expression {
+func (p *Parser) parsePrefixExpression() ast.Node {
 	e := &ast.PrefixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
@@ -182,7 +175,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	return e
 }
 
-func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseInfixExpression(left ast.Node) ast.Node {
 	e := &ast.InfixExpression{
 		Token:    p.currentToken,
 		Operator: p.currentToken.Literal,
@@ -196,7 +189,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return e
 }
 
-func (p *Parser) parseMemberExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseMemberExpression(left ast.Node) ast.Node {
 	e := &ast.MemberExpression{Token: p.currentToken, Left: left}
 	pr := p.currentPrecedence()
 	p.nextToken()
@@ -205,7 +198,7 @@ func (p *Parser) parseMemberExpression(left ast.Expression) ast.Expression {
 	return e
 }
 
-func (p *Parser) parseGroupedExpression() ast.Expression {
+func (p *Parser) parseGroupedExpression() ast.Node {
 	p.nextToken()
 
 	e := p.parseExpression(precedenceLowest)
@@ -217,7 +210,7 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	return e
 }
 
-func (p *Parser) parseCallExpression(fn ast.Expression) ast.Expression {
+func (p *Parser) parseCallExpression(fn ast.Node) ast.Node {
 	return &ast.CallExpression{
 		Token:     p.currentToken,
 		Function:  fn,
@@ -225,8 +218,8 @@ func (p *Parser) parseCallExpression(fn ast.Expression) ast.Expression {
 	}
 }
 
-func (p *Parser) parseExpressionList(t token.Type) []ast.Expression {
-	l := []ast.Expression{}
+func (p *Parser) parseExpressionList(t token.Type) []ast.Node {
+	l := []ast.Node{}
 
 	if p.peekTokenIs(t) {
 		p.nextToken()
@@ -249,7 +242,7 @@ func (p *Parser) parseExpressionList(t token.Type) []ast.Expression {
 	return l
 }
 
-func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+func (p *Parser) parseIndexExpression(left ast.Node) ast.Node {
 	e := &ast.IndexExpression{Token: p.currentToken, Left: left}
 	p.nextToken()
 
@@ -261,14 +254,14 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	return e
 }
 
-func (p *Parser) parseIdentifier() ast.Expression {
+func (p *Parser) parseIdentifier() ast.Node {
 	return &ast.Identifier{
 		Token: p.currentToken,
 		Value: p.currentToken.Literal,
 	}
 }
 
-func (p *Parser) parseIntegerLiteral() ast.Expression {
+func (p *Parser) parseIntegerLiteral() ast.Node {
 	l := &ast.IntegerLiteral{Token: p.currentToken}
 
 	var err error
@@ -281,7 +274,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return l
 }
 
-func (p *Parser) parseFloatLiteral() ast.Expression {
+func (p *Parser) parseFloatLiteral() ast.Node {
 	l := &ast.FloatLiteral{Token: p.currentToken}
 
 	var err error
@@ -294,27 +287,27 @@ func (p *Parser) parseFloatLiteral() ast.Expression {
 	return l
 }
 
-func (p *Parser) parseStringLiteral() ast.Expression {
+func (p *Parser) parseStringLiteral() ast.Node {
 	return &ast.StringLiteral{
 		Token: p.currentToken,
 		Value: p.currentToken.Literal,
 	}
 }
 
-func (p *Parser) parseBoolean() ast.Expression {
+func (p *Parser) parseBoolean() ast.Node {
 	return &ast.Boolean{
 		Token: p.currentToken,
 		Value: p.curTokenIs(token.True),
 	}
 }
 
-func (p *Parser) parseNull() ast.Expression {
+func (p *Parser) parseNull() ast.Node {
 	return &ast.Null{
 		Token: p.currentToken,
 	}
 }
 
-func (p *Parser) parseArrayLiteral() ast.Expression {
+func (p *Parser) parseArrayLiteral() ast.Node {
 	return &ast.ArrayLiteral{
 		Token:    p.currentToken,
 		Elements: p.parseExpressionList(token.RBracket),

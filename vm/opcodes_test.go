@@ -26,7 +26,6 @@ func TestInstructions_String(t *testing.T) {
 0009 OpConstant 0
 0012 OpEndsWith
 0013 OpAnd
-0014 OpPop
 `
 
 	act := p.Instructions.String()

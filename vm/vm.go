@@ -35,7 +35,7 @@ func (vm *VM) Run() (types.Object, error) {
 	if err := vm.run(); err != nil {
 		return nil, err
 	}
-	return vm.stack[vm.sp], nil
+	return vm.stack[vm.sp-1], nil
 }
 
 func (vm *VM) run() (err error) {

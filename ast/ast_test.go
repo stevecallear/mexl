@@ -71,7 +71,7 @@ func TestNode(t *testing.T) {
 			name: "array literal",
 			sut: &ast.ArrayLiteral{
 				Token: token.Token{Type: token.RBracket, Literal: "]"},
-				Elements: []ast.Expression{
+				Elements: []ast.Node{
 					&ast.IntegerLiteral{
 						Token: token.Token{Type: token.Int, Literal: "1"},
 						Value: 1,
@@ -91,7 +91,7 @@ func TestNode(t *testing.T) {
 				Token: token.Token{Type: token.RParen, Literal: "]"},
 				Left: &ast.ArrayLiteral{
 					Token: token.Token{Type: token.RBracket, Literal: "]"},
-					Elements: []ast.Expression{
+					Elements: []ast.Node{
 						&ast.IntegerLiteral{
 							Token: token.Token{Type: token.Int, Literal: "1"},
 							Value: 1,
@@ -164,7 +164,7 @@ func TestNode(t *testing.T) {
 					Token: token.Token{Type: token.Ident, Literal: "fn"},
 					Value: "fn",
 				},
-				Arguments: []ast.Expression{
+				Arguments: []ast.Node{
 					&ast.IntegerLiteral{
 						Token: token.Token{Type: token.Int, Literal: "4"},
 						Value: 4,
@@ -177,18 +177,6 @@ func TestNode(t *testing.T) {
 			},
 			lit: ")",
 			str: "fn(4, 5)",
-		},
-		{
-			name: "expression statement",
-			sut: &ast.ExpressionStatement{
-				Token: token.Token{Type: token.Int, Literal: "5"},
-				Expression: &ast.IntegerLiteral{
-					Token: token.Token{Type: token.Int, Literal: "5"},
-					Value: 5,
-				},
-			},
-			lit: "5",
-			str: "5",
 		},
 	}
 
