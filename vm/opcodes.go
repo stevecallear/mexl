@@ -24,7 +24,6 @@ const (
 	OpMultiply
 	OpDivide
 	OpModulus
-	OpPop
 	OpTrue
 	OpFalse
 	OpNull
@@ -57,7 +56,6 @@ var definitions = map[Opcode]*Definition{
 	OpMultiply:       {"OpMultiply", []int{}},
 	OpDivide:         {"OpDivide", []int{}},
 	OpModulus:        {"OpModulus", []int{}},
-	OpPop:            {"OpPop", []int{}},
 	OpTrue:           {"OpTrue", []int{}},
 	OpFalse:          {"OpFalse", []int{}},
 	OpNull:           {"OpNull", []int{}},

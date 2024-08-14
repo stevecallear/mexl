@@ -53,9 +53,6 @@ func (vm *VM) run() (err error) {
 			i += 2
 			vm.execArray(alen)
 
-		case OpPop:
-			vm.pop()
-
 		case OpTrue:
 			vm.push(objTrue)
 
