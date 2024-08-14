@@ -39,12 +39,6 @@ func (c *Compiler) Compile(n ast.Node) (*vm.Program, error) {
 
 func (c *Compiler) compile(n ast.Node) (err error) {
 	switch node := n.(type) {
-	case *ast.ExpressionStatement:
-		if err = c.compile(node.Expression); err != nil {
-			return err
-		}
-		c.emit(vm.OpPop)
-
 	case *ast.InfixExpression:
 		if err = c.compileInfixExpression(node); err != nil {
 			return err
@@ -113,7 +107,7 @@ func (c *Compiler) compile(n ast.Node) (err error) {
 	return nil
 }
 
-func (c *Compiler) compileExpressions(exprs []ast.Expression) error {
+func (c *Compiler) compileExpressions(exprs []ast.Node) error {
 	for _, expr := range exprs {
 		if err := c.compile(expr); err != nil {
 			return err

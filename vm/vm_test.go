@@ -377,10 +377,10 @@ func assertArrayObject(t *testing.T, act any, exp []any) {
 	}
 }
 
-func parse(input string) ast.Statement {
-	s, err := parser.New(input).Parse()
+func parse(input string) ast.Node {
+	n, err := parser.New(input).Parse()
 	if err != nil {
 		panic(err)
 	}
-	return s
+	return n
 }
