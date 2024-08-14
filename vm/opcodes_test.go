@@ -18,11 +18,11 @@ func TestInstructions_String(t *testing.T) {
 		t.Fatalf("got %v, expected nil", err)
 	}
 
-	exp := `0000 OpFetch 0
+	exp := `0000 OpGlobal 0
 0002 OpNull
 0003 OpNotEqual
 0004 OpJumpIfFalse 14
-0007 OpFetch 0
+0007 OpGlobal 0
 0009 OpConstant 0
 0012 OpEndsWith
 0013 OpAnd
