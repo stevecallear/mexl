@@ -59,11 +59,6 @@ func TestBuiltIn(t *testing.T) {
 			exp:   "abc",
 		},
 		{
-			name:  "lower (null)",
-			input: "lower(null)",
-			exp:   nil,
-		},
-		{
 			name:  "upper args count error",
 			input: `upper("A", "b")`,
 			err:   true,
@@ -77,11 +72,6 @@ func TestBuiltIn(t *testing.T) {
 			name:  "upper",
 			input: `upper("abc")`,
 			exp:   "ABC",
-		},
-		{
-			name:  "upper (null)",
-			input: "upper(null)",
-			exp:   nil,
 		},
 		{
 			name:  "custom",

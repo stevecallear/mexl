@@ -250,9 +250,6 @@ func (vm *VM) execComparison(op Opcode) error {
 	lt, rt := l.Type(), r.Type()
 
 	switch {
-	case lt == types.TypeNull || rt == types.TypeNull:
-		vm.push(objFalse)
-
 	case lt == types.TypeInteger && rt == types.TypeInteger:
 		return vm.execIntegerComparison(op, l, r)
 
@@ -274,8 +271,6 @@ func (vm *VM) execComparison(op Opcode) error {
 	default:
 		return fmt.Errorf("unknown comparison operator: %d (%s %s)", op, l.Type(), r.Type())
 	}
-
-	return nil
 }
 
 func (vm *VM) execIntegerComparison(op Opcode, left, right types.Object) error {
