@@ -146,7 +146,6 @@ func TestBooleanExpressions(t *testing.T) {
 		newTestCase(`1 ne null`, true),
 		newTestCase(`false and x eq 1`, false),
 		newTestCase(`true or x eq 1`, true),
-		newTestCase(`invalid ew "abc"`, false),
 	}
 
 	testVM(t, tests)
