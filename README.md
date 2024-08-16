@@ -6,7 +6,7 @@
 
 `mexl` is a basic expression language. It is heavily informed by the [Writing An Intepreter/Compiler In Go](https://interpreterbook.com/) books by Thorsten Ball and was primarily written as a learning exercise.
 
-It is intended to offer the simplicity of [`rules`](https://github.com/nikunjy/rules) with some of the performance and flexibility of [`expr`](https://github.com/expr-lang/expr). With that said, if I was deploying an expression language to production it would definitely be the latter unless there was a specific syntactic or functional need.
+It is intended to offer the simplicity of [`rules`](https://github.com/nikunjy/rules) with some of the performance and flexibility of [`expr`](https://github.com/expr-lang/expr), while simplifying expressions with partial type coercion. The API and syntax are not currently stable so I would not recommend use in production. Generally I would recommend `expr` in that scenario unless there are specific syntactic or functional requirements.
 
 
 ## Getting Started
@@ -39,7 +39,7 @@ fmt.Println(out)
 ```
 
 ## Types
-`mexl` is generally statically typed, but with in-built conversion to remove the need for casts. For example, any numeric infix expression that involves a float value will result in a float output. The same is true of integer division where, for simplicity, dividing two integers will result in a float output.
+`mexl` is generally statically typed, but uses type coercion where appropriate to avoid casts and excessive null checking.
 
 |Type   |Go Type	     |
 |---    |---             |
@@ -50,6 +50,40 @@ fmt.Println(out)
 |array  |`[]any`         |
 |map    |`map[string]any`|
 |null   |`nil`           |
+
+### Null Coalescing
+Nulls are coalesced by default. The following expression would evaluate to null.
+```
+out, err := mexl.Eval("x.y.z", nil) // x is not defined, out is nil
+```
+
+### Type Coercion
+To avoid casts and null checking, partial type coercion is applied at runtime.
+
+Numeric expressions containing float and integer values will result in a float value:
+```
+out, err := mexl.Eval("1 + 1.1", nil) // out is 2.1
+```
+
+Division of numeric values will result in a float value if the result cannot be represented by an integer:
+```
+out, err := mexl.Eval("3 / 2", nil) // out is 1.5
+```
+
+If a binary expression contains a null value it will be coerced to the default value of the appropriate type:
+```
+out, err := mexl.Eval("null + 1", nil) // out is 1
+```
+
+Null coercion is intended to avoid constant null checks or runtime errors when the input values and there types cannot be guaranteed. For example:
+```
+out, err := mexl.Eval(`lower(x.y) ew "abc"`, nil) // x is not defined, out is false
+```
+
+Null checks can be performed using the `eq` or `ne` operators if required:
+```
+out, err := mexl.Eval("x.y eq null", nil) // out is true
+```
 
 ## Operations
 The following operations are supported:
