@@ -9,8 +9,8 @@ import (
 
 var builtIns = map[string]types.Func{
 	"len": func(args ...types.Object) (types.Object, error) {
-		if len(args) != 1 {
-			return nil, fmt.Errorf("wrong number of arguments: %d, expected 1", len(args))
+		if err := expectArgsLen("len", args, 1); err != nil {
+			return nil, err
 		}
 
 		var l int
@@ -31,34 +31,47 @@ var builtIns = map[string]types.Func{
 	},
 
 	"lower": func(args ...types.Object) (types.Object, error) {
-		if err := expectArgs(args, types.TypeString); err != nil {
+		if err := expectArgsLen("lower", args, 1); err != nil {
 			return nil, err
 		}
 
-		return &types.String{
-			Value: strings.ToLower(args[0].(*types.String).Value),
-		}, nil
+		switch args[0].Type() {
+		case types.TypeNull:
+			return objNull, nil
+
+		case types.TypeString:
+			return &types.String{
+				Value: strings.ToLower(args[0].(*types.String).Value),
+			}, nil
+
+		default:
+			return nil, fmt.Errorf("lower: wrong arg type: %s, expected %s", args[0].Type(), types.TypeString)
+		}
 	},
 
 	"upper": func(args ...types.Object) (types.Object, error) {
-		if err := expectArgs(args, types.TypeString); err != nil {
+		if err := expectArgsLen("upper", args, 1); err != nil {
 			return nil, err
 		}
 
-		return &types.String{
-			Value: strings.ToUpper(args[0].(*types.String).Value),
-		}, nil
+		switch args[0].Type() {
+		case types.TypeNull:
+			return objNull, nil
+
+		case types.TypeString:
+			return &types.String{
+				Value: strings.ToUpper(args[0].(*types.String).Value),
+			}, nil
+
+		default:
+			return nil, fmt.Errorf("upper: wrong arg type: %s, expected %s", args[0].Type(), types.TypeString)
+		}
 	},
 }
 
-func expectArgs(args []types.Object, types ...types.Type) error {
-	if len(args) != len(types) {
-		return fmt.Errorf("wrong number of arguments: %d, expected %d", len(args), len(types))
-	}
-	for i, v := range types {
-		if args[i].Type() != v {
-			return fmt.Errorf("invalid type at %d: %s, expected %s", i, args[i].Type(), v)
-		}
+func expectArgsLen(name string, args []types.Object, l int) error {
+	if len(args) != l {
+		return fmt.Errorf("%s: wrong number of arguments: %d, expected %d", name, len(args), l)
 	}
 	return nil
 }

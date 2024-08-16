@@ -54,6 +54,11 @@ func TestBuiltIn(t *testing.T) {
 			err:   true,
 		},
 		{
+			name:  "lower null",
+			input: "lower(null)",
+			exp:   nil,
+		},
+		{
 			name:  "lower",
 			input: `lower("ABC")`,
 			exp:   "abc",
@@ -72,6 +77,11 @@ func TestBuiltIn(t *testing.T) {
 			name:  "upper",
 			input: `upper("abc")`,
 			exp:   "ABC",
+		},
+		{
+			name:  "upper null",
+			input: "upper(null)",
+			exp:   nil,
 		},
 		{
 			name:  "custom",

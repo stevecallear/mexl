@@ -132,17 +132,13 @@ func (vm *VM) run() (err error) {
 func (vm *VM) execBinaryOp(op Opcode) error {
 	r := vm.pop()
 	l := vm.pop()
+
+	l, r = types.Coerce(l, r)
 	lt, rt := l.Type(), r.Type()
 
 	switch {
 	case lt == types.TypeInteger && rt == types.TypeInteger:
 		return vm.execBinaryIntegerOp(op, l, r)
-
-	case lt == types.TypeInteger && rt == types.TypeFloat:
-		fallthrough
-
-	case lt == types.TypeFloat && rt == types.TypeInteger:
-		fallthrough
 
 	case lt == types.TypeFloat && rt == types.TypeFloat:
 		return vm.execBinaryFloatOp(op, l, r)
@@ -189,8 +185,8 @@ func (vm *VM) execBinaryIntegerOp(op Opcode, left, right types.Object) error {
 }
 
 func (vm *VM) execBinaryFloatOp(op Opcode, left, right types.Object) error {
-	l := objectToFloat(left)
-	r := objectToFloat(right)
+	l := left.(*types.Float).Value
+	r := right.(*types.Float).Value
 
 	var v float64
 	switch op {
@@ -247,17 +243,13 @@ func (vm *VM) execEqualityComparison(op Opcode) error {
 func (vm *VM) execComparison(op Opcode) error {
 	r := vm.pop()
 	l := vm.pop()
+
+	l, r = types.Coerce(l, r)
 	lt, rt := l.Type(), r.Type()
 
 	switch {
 	case lt == types.TypeInteger && rt == types.TypeInteger:
 		return vm.execIntegerComparison(op, l, r)
-
-	case lt == types.TypeInteger && rt == types.TypeFloat:
-		fallthrough
-
-	case lt == types.TypeFloat && rt == types.TypeInteger:
-		fallthrough
 
 	case lt == types.TypeFloat && rt == types.TypeFloat:
 		return vm.execFloatComparison(op, l, r)
@@ -298,8 +290,8 @@ func (vm *VM) execIntegerComparison(op Opcode, left, right types.Object) error {
 }
 
 func (vm *VM) execFloatComparison(op Opcode, left, right types.Object) error {
-	l := objectToFloat(left)
-	r := objectToFloat(right)
+	l := left.(*types.Float).Value
+	r := right.(*types.Float).Value
 
 	switch op {
 	case OpLess:
@@ -374,12 +366,23 @@ func (vm *VM) execBangOp() {
 func (vm *VM) execMinusOp() error {
 	o := vm.pop()
 
-	if o.Type() != types.TypeInteger {
+	switch o.Type() {
+	case types.TypeNull:
+		o = objNull
+
+	case types.TypeInteger:
+		v := o.(*types.Integer).Value
+		o = &types.Integer{Value: -v}
+
+	case types.TypeFloat:
+		v := o.(*types.Float).Value
+		o = &types.Float{Value: -v}
+
+	default:
 		return fmt.Errorf("unsupported type for negation: %s", o.Type())
 	}
 
-	v := o.(*types.Integer).Value
-	vm.push(&types.Integer{Value: -v})
+	vm.push(o)
 	return nil
 }
 
@@ -389,17 +392,20 @@ func (vm *VM) execInOp() error {
 	lt, rt := l.Type(), r.Type()
 
 	switch {
+	case lt == types.TypeNull || rt == types.TypeNull:
+		vm.push(objFalse)
+
 	case lt == types.TypeString && rt == types.TypeString:
 		vm.execStringInOp(l, r)
-		return nil
 
 	case rt == types.TypeArray:
 		vm.execArrayInOp(l, r)
-		return nil
 
 	default:
 		return fmt.Errorf("unsupported types for in operation: %s IN %s", lt, rt)
 	}
+
+	return nil
 }
 
 func (vm *VM) execStringInOp(left, right types.Object) {
@@ -539,17 +545,4 @@ func boolToObject(b bool) *types.Boolean {
 		return objTrue
 	}
 	return objFalse
-}
-
-func objectToFloat(obj types.Object) float64 {
-	switch obj.Type() {
-	case types.TypeFloat:
-		return obj.(*types.Float).Value
-
-	case types.TypeInteger:
-		return float64(obj.(*types.Integer).Value)
-
-	default:
-		panic(fmt.Errorf("unsupported float conversion: %T", obj))
-	}
 }

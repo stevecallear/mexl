@@ -59,6 +59,7 @@ func TestFloatArithmetic(t *testing.T) {
 		newTestCase("1.1 - 2.2", -1.1),
 		newTestCase("1.0 * 2.2", 2.2),
 		newTestCase("3.0 / 1.5", 2.0),
+		newTestCase("-1.1", -1.1),
 	}
 
 	testVM(t, tests)
@@ -254,6 +255,23 @@ func TestGlobals(t *testing.T) {
 			},
 			exp: 8,
 		},
+	}
+
+	testVM(t, tests)
+}
+
+func TestNull(t *testing.T) {
+	tests := []testCase{
+		newTestCase("null + 1", 1),
+		newTestCase("null - 1", -1),
+		newTestCase("0.5 * null", 0.0),
+		newTestCase("null * 1.2", 0.0),
+		newTestCase("null lt 1 ", true),
+		newTestCase("null gt 0.5", false),
+		newTestCase(`null ew "abc"`, false),
+		newTestCase("-null", nil),
+		newTestCase("null in [1]", false),
+		newTestCase("1 in null", false),
 	}
 
 	testVM(t, tests)
