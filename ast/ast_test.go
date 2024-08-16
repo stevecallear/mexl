@@ -140,6 +140,19 @@ func TestNode(t *testing.T) {
 			str: "(-5)",
 		},
 		{
+			name: "prefix expression multi char",
+			sut: &ast.PrefixExpression{
+				Token:    token.Token{Type: token.Bang, Literal: "not"},
+				Operator: "not",
+				Right: &ast.Boolean{
+					Token: token.Token{Type: token.True, Literal: "true"},
+					Value: true,
+				},
+			},
+			lit: "not",
+			str: "(not true)",
+		},
+		{
 			name: "infix expression",
 			sut: &ast.InfixExpression{
 				Token: token.Token{Type: token.Plus, Literal: "+"},
