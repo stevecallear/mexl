@@ -58,6 +58,7 @@ func (c *Compiler) compile(n ast.Node) (err error) {
 
 	case *ast.Null:
 		c.emit(vm.OpNull)
+
 	case *ast.IntegerLiteral:
 		obj := &types.Integer{Value: node.Value}
 		c.emit(vm.OpConstant, c.addConstant(obj))
@@ -250,7 +251,6 @@ func (c *Compiler) patchJump(pos int) {
 	for i := range ins {
 		c.instructions[pos+i] = ins[i]
 	}
-
 }
 
 func (c *Compiler) emit(op vm.Opcode, operands ...int) int {

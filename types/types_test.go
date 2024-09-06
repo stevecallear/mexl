@@ -36,7 +36,7 @@ func TestInteger_Equal(t *testing.T) {
 		},
 		{
 			name: "not equal (float)",
-			cmp:  &types.Float{Value: 2.2},
+			cmp:  &types.Float{Value: 1.0},
 			exp:  false,
 		},
 		{
@@ -47,11 +47,6 @@ func TestInteger_Equal(t *testing.T) {
 		{
 			name: "equal (int)",
 			cmp:  &types.Integer{Value: 1},
-			exp:  true,
-		},
-		{
-			name: "equal (float)",
-			cmp:  &types.Float{Value: 1.0},
 			exp:  true,
 		},
 	}
@@ -100,7 +95,7 @@ func TestFloat_Equal(t *testing.T) {
 		},
 		{
 			name: "not equal (int)",
-			cmp:  &types.Integer{Value: 2},
+			cmp:  &types.Integer{Value: 1},
 			exp:  false,
 		},
 		{
@@ -111,11 +106,6 @@ func TestFloat_Equal(t *testing.T) {
 		{
 			name: "equal (pointer)",
 			cmp:  sut,
-			exp:  true,
-		},
-		{
-			name: "equal (int)",
-			cmp:  &types.Integer{Value: 1},
 			exp:  true,
 		},
 		{

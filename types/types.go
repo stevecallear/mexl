@@ -65,14 +65,9 @@ func (i *Integer) Equal(o Object) bool {
 	if i == o {
 		return true
 	}
-	switch t := o.(type) {
-	case *Integer:
-		return i.Value == t.Value
-	case *Float:
-		return i.Value == int64(t.Value)
-	default:
-		return false
-	}
+
+	t, ok := o.(*Integer)
+	return ok && i.Value == t.Value
 }
 
 func (i *Integer) Type() Type {
@@ -87,14 +82,9 @@ func (f *Float) Equal(o Object) bool {
 	if f == o {
 		return true
 	}
-	switch t := o.(type) {
-	case *Float:
-		return f.Value == t.Value
-	case *Integer:
-		return f.Value == float64(t.Value)
-	default:
-		return false
-	}
+
+	t, ok := o.(*Float)
+	return ok && f.Value == t.Value
 }
 
 func (f *Float) Type() Type {
@@ -113,10 +103,9 @@ func (s *String) Equal(o Object) bool {
 	if s == o {
 		return true
 	}
-	if t, ok := o.(*String); ok {
-		return s.Value == t.Value
-	}
-	return false
+
+	t, ok := o.(*String)
+	return ok && s.Value == t.Value
 }
 
 func (s *String) Inspect() string {
