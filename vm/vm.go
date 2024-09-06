@@ -223,18 +223,20 @@ func (vm *VM) execBinaryStringOp(op Opcode, left, right types.Object) error {
 }
 
 func (vm *VM) execEqualityComparison(op Opcode) error {
-	right := vm.pop()
-	left := vm.pop()
+	r := vm.pop()
+	l := vm.pop()
+
+	l, r = types.Coerce(l, r)
 
 	switch op {
 	case OpEqual:
-		vm.push(boolToObject(left.Equal(right)))
+		vm.push(boolToObject(l.Equal(r)))
 
 	case OpNotEqual:
-		vm.push(boolToObject(!left.Equal(right)))
+		vm.push(boolToObject(!l.Equal(r)))
 
 	default:
-		return fmt.Errorf("unknown equality comparison operator: %d (%s %s)", op, left.Type(), right.Type())
+		return fmt.Errorf("unknown equality comparison operator: %d (%s %s)", op, l.Type(), r.Type())
 	}
 
 	return nil
