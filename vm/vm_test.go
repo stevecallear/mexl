@@ -1,9 +1,9 @@
 package vm_test
 
 import (
+	"strconv"
 	"testing"
 
-	"github.com/stevecallear/mexl/ast"
 	"github.com/stevecallear/mexl/compiler"
 	"github.com/stevecallear/mexl/parser"
 	"github.com/stevecallear/mexl/types"
@@ -11,17 +11,17 @@ import (
 )
 
 type testCase struct {
-	name  string
-	input string
-	env   types.Map
-	exp   any
-	err   bool
+	name string
+	prog *vm.Program
+	env  types.Map
+	exp  any
+	err  bool
 }
 
 func newTestCase(input string, exp any) testCase {
 	return testCase{
-		input: input,
-		exp:   exp,
+		prog: compile(input),
+		exp:  exp,
 	}
 }
 
@@ -155,14 +155,14 @@ func TestBooleanExpressions(t *testing.T) {
 func TestStringExpressions(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "constant",
-			input: `"abc"`,
-			exp:   "abc",
+			name: "constant",
+			prog: compile(`"abc"`),
+			exp:  "abc",
 		},
 		{
-			name:  "concatenation",
-			input: `"abc" + "def"`,
-			exp:   "abcdef",
+			name: "concatenation",
+			prog: compile(`"abc" + "def"`),
+			exp:  "abcdef",
 		},
 	}
 
@@ -172,14 +172,14 @@ func TestStringExpressions(t *testing.T) {
 func TestArrays(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "constant",
-			input: `[1, "b", 3.3]`,
-			exp:   []any{1, "b", 3.3},
+			name: "constant",
+			prog: compile(`[1, "b", 3.3]`),
+			exp:  []any{1, "b", 3.3},
 		},
 		{
-			name:  "index operator",
-			input: `[1, 2, 3][1]`,
-			exp:   2,
+			name: "index operator",
+			prog: compile(`[1, 2, 3][1]`),
+			exp:  2,
 		},
 	}
 
@@ -189,16 +189,16 @@ func TestArrays(t *testing.T) {
 func TestMaps(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "root",
-			input: "x",
+			name: "root",
+			prog: compile("x"),
 			env: types.Map{
 				"x": &types.Integer{Value: 1},
 			},
 			exp: 1,
 		},
 		{
-			name:  "member",
-			input: "x.y.z",
+			name: "member",
+			prog: compile("x.y.z"),
 			env: types.Map{
 				"x": types.Map{
 					"y": types.Map{
@@ -209,13 +209,13 @@ func TestMaps(t *testing.T) {
 			exp: 1,
 		},
 		{
-			name:  "invalid root",
-			input: "invalid.x",
-			exp:   nil,
+			name: "invalid root",
+			prog: compile("invalid.x"),
+			exp:  nil,
 		},
 		{
-			name:  "invalid member",
-			input: "x.invalid",
+			name: "invalid member",
+			prog: compile("x.invalid"),
 			env: types.Map{
 				"x": types.Map{
 					"y": &types.Integer{Value: 1},
@@ -231,24 +231,24 @@ func TestMaps(t *testing.T) {
 func TestGlobals(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "constant",
-			input: "x",
+			name: "constant",
+			prog: compile("x"),
 			env: types.Map{
 				"x": &types.Boolean{Value: true},
 			},
 			exp: true,
 		},
 		{
-			name:  "boolean expression",
-			input: "x < 4",
+			name: "boolean expression",
+			prog: compile("x < 4"),
 			env: types.Map{
 				"x": &types.Integer{Value: 5},
 			},
 			exp: false,
 		},
 		{
-			name:  "arithmetic operation",
-			input: "x + y",
+			name: "arithmetic operation",
+			prog: compile("x + y"),
 			env: types.Map{
 				"x": &types.Integer{Value: 5},
 				"y": &types.Integer{Value: 3},
@@ -280,21 +280,14 @@ func TestNull(t *testing.T) {
 func testVM(t *testing.T, tests []testCase) {
 	t.Helper()
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		n := tt.name
 		if n == "" {
-			n = tt.input
+			n = strconv.Itoa(i)
 		}
 
 		t.Run(n, func(t *testing.T) {
-			s := parse(tt.input)
-
-			p, err := compiler.New().Compile(s)
-			if err != nil {
-				t.Fatalf("got %v, expected nil", err)
-			}
-
-			out, err := vm.New(p, tt.env).Run()
+			out, err := vm.New(tt.prog, tt.env).Run()
 			if err != nil && !tt.err {
 				t.Fatalf("got %v, expected nil", err)
 			}
@@ -394,10 +387,16 @@ func assertArrayObject(t *testing.T, act any, exp []any) {
 	}
 }
 
-func parse(input string) ast.Node {
+func compile(input string) *vm.Program {
 	n, err := parser.New(input).Parse()
 	if err != nil {
 		panic(err)
 	}
-	return n
+
+	p, err := compiler.New().Compile(n)
+	if err != nil {
+		panic(err)
+	}
+
+	return p
 }
