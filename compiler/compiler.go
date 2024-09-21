@@ -103,6 +103,8 @@ func (c *Compiler) compile(n ast.Node) (err error) {
 		}
 		c.emit(vm.OpCall, len(node.Arguments))
 
+	default:
+		return fmt.Errorf("invalid ast node: %T", n)
 	}
 
 	return nil
@@ -137,97 +139,80 @@ func (c *Compiler) compilePrefixExpression(n *ast.PrefixExpression) (err error) 
 }
 
 func (c *Compiler) compileInfixExpression(n *ast.InfixExpression) (err error) {
-	compile := func() error {
-		if err = c.compile(n.Left); err != nil {
-			return err
-		}
-		return c.compile(n.Right)
-	}
+	var op, jop vm.Opcode
 
 	switch n.Operator {
 	case "+":
-		err = compile()
-		c.emit(vm.OpAdd)
+		op = vm.OpAdd
 
 	case "-":
-		err = compile()
-		c.emit(vm.OpSubtract)
+		op = vm.OpSubtract
 
 	case "*":
-		err = compile()
-		c.emit(vm.OpMultiply)
+		op = vm.OpMultiply
 
 	case "/":
-		err = compile()
-		c.emit(vm.OpDivide)
+		op = vm.OpDivide
 
 	case "%":
-		err = compile()
-		c.emit(vm.OpModulus)
+		op = vm.OpModulus
 
 	case "eq", "==":
-		err = compile()
-		c.emit(vm.OpEqual)
+		op = vm.OpEqual
 
 	case "ne", "!=":
-		err = compile()
-		c.emit(vm.OpNotEqual)
+		op = vm.OpNotEqual
 
 	case "lt", "<":
-		err = compile()
-		c.emit(vm.OpLess)
+		op = vm.OpLess
 
 	case "le", "<=":
-		err = compile()
-		c.emit(vm.OpLessOrEqual)
+		op = vm.OpLessOrEqual
 
 	case "gt", ">":
-		err = compile()
-		c.emit(vm.OpGreater)
+		op = vm.OpGreater
 
 	case "ge", ">=":
-		err = compile()
-		c.emit(vm.OpGreaterOrEqual)
+		op = vm.OpGreaterOrEqual
 
 	case "and", "&&":
-		if err = c.compile(n.Left); err != nil {
-			return err
-		}
-		jpos := c.emit(vm.OpJumpIfFalse, jumpPlaceholder)
-		if err = c.compile(n.Right); err != nil {
-			return err
-		}
-		c.emit(vm.OpAnd)
-		c.patchJump(jpos)
+		op = vm.OpAnd
+		jop = vm.OpJumpIfFalse
 
 	case "or", "||":
+		op = vm.OpOr
+		jop = vm.OpJumpIfTrue
+
+	case "sw":
+		op = vm.OpStartsWith
+
+	case "ew":
+		op = vm.OpEndsWith
+
+	case "in":
+		op = vm.OpIn
+
+	default:
+		return fmt.Errorf("unknown infix operator: %s", n.Operator)
+	}
+
+	return func() error {
 		if err = c.compile(n.Left); err != nil {
 			return err
 		}
-		jpos := c.emit(vm.OpJumpIfTrue, jumpPlaceholder)
+
+		if jop > 0 {
+			jpos := c.emit(jop, jumpPlaceholder)
+			defer c.patchJump(jpos)
+		}
+
 		if err = c.compile(n.Right); err != nil {
 			return err
 		}
-		c.emit(vm.OpOr)
-		c.patchJump(jpos)
 
-	case "sw":
-		err = compile()
-		c.emit(vm.OpStartsWith)
-
-	case "ew":
-		err = compile()
-		c.emit(vm.OpEndsWith)
-
-	case "in":
-		err = compile()
-		c.emit(vm.OpIn)
-
-	default:
-		err = fmt.Errorf("unknown infix operator: %s", n.Operator)
-	}
-
-	return err
+		c.emit(op)
+		return nil
+	}()
 }
 
 func (c *Compiler) compileMemberExpression(n *ast.MemberExpression) error {
@@ -271,6 +256,7 @@ func (c *Compiler) addIdentifier(s string) int {
 	if i := slices.Index(c.identifiers, s); i >= 0 {
 		return i
 	}
+
 	c.identifiers = append(c.identifiers, s)
 	return len(c.identifiers) - 1
 }

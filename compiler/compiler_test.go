@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stevecallear/mexl/ast"
+	"github.com/stevecallear/mexl/ast/token"
 	"github.com/stevecallear/mexl/compiler"
 	"github.com/stevecallear/mexl/parser"
 	"github.com/stevecallear/mexl/types"
@@ -12,9 +13,10 @@ import (
 
 type (
 	testCase struct {
-		name  string
-		input string
-		exp   expectation
+		name string
+		node ast.Node
+		exp  expectation
+		err  bool
 	}
 
 	expectation struct {
@@ -27,8 +29,8 @@ type (
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "addition",
-			input: "1 + 2",
+			name: "addition",
+			node: parse("1 + 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -39,8 +41,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "subtraction",
-			input: "2 - 1",
+			name: "subtraction",
+			node: parse("2 - 1"),
 			exp: expectation{
 				constants: []any{2, 1},
 				instructions: []vm.Instructions{
@@ -51,8 +53,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "multiplication",
-			input: "1 * 2",
+			name: "multiplication",
+			node: parse("1 * 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -63,8 +65,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "division",
-			input: "2 / 1",
+			name: "division",
+			node: parse("2 / 1"),
 			exp: expectation{
 				constants: []any{2, 1},
 				instructions: []vm.Instructions{
@@ -75,8 +77,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "modulus",
-			input: "5 % 2",
+			name: "modulus",
+			node: parse("5 % 2"),
 			exp: expectation{
 				constants: []any{5, 2},
 				instructions: []vm.Instructions{
@@ -87,8 +89,8 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "minus",
-			input: "-1",
+			name: "minus",
+			node: parse("-1"),
 			exp: expectation{
 				constants: []any{1},
 				instructions: []vm.Instructions{
@@ -105,8 +107,8 @@ func TestIntegerArithmetic(t *testing.T) {
 func TestFloatArithmetic(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "addition",
-			input: "1.1 + 2.2",
+			name: "addition",
+			node: parse("1.1 + 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -117,8 +119,8 @@ func TestFloatArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "subtraction",
-			input: "2.2 - 1.1",
+			name: "subtraction",
+			node: parse("2.2 - 1.1"),
 			exp: expectation{
 				constants: []any{2.2, 1.1},
 				instructions: []vm.Instructions{
@@ -129,8 +131,8 @@ func TestFloatArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "multiplication",
-			input: "1.1 * 2.2",
+			name: "multiplication",
+			node: parse("1.1 * 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -141,8 +143,8 @@ func TestFloatArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "division",
-			input: "2.2 / 1.1",
+			name: "division",
+			node: parse("2.2 / 1.1"),
 			exp: expectation{
 				constants: []any{2.2, 1.1},
 				instructions: []vm.Instructions{
@@ -153,8 +155,8 @@ func TestFloatArithmetic(t *testing.T) {
 			},
 		},
 		{
-			name:  "minus",
-			input: "-1.1",
+			name: "minus",
+			node: parse("-1.1"),
 			exp: expectation{
 				constants: []any{1.1},
 				instructions: []vm.Instructions{
@@ -171,8 +173,8 @@ func TestFloatArithmetic(t *testing.T) {
 func TestBooleanExpressions(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "true",
-			input: "true",
+			name: "true",
+			node: parse("true"),
 			exp: expectation{
 				constants: []any{},
 				instructions: []vm.Instructions{
@@ -181,8 +183,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "false",
-			input: "false",
+			name: "false",
+			node: parse("false"),
 			exp: expectation{
 				constants: []any{},
 				instructions: []vm.Instructions{
@@ -191,8 +193,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "int greater than",
-			input: "1 > 2",
+			name: "int greater than",
+			node: parse("1 > 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -203,8 +205,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "int greater than or equal",
-			input: "1 >= 2",
+			name: "int greater than or equal",
+			node: parse("1 >= 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -215,8 +217,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "int less than",
-			input: "1 < 2",
+			name: "int less than",
+			node: parse("1 < 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -227,8 +229,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "int less than or equal",
-			input: "1 <= 2",
+			name: "int less than or equal",
+			node: parse("1 <= 2"),
 			exp: expectation{
 				constants: []any{1, 2},
 				instructions: []vm.Instructions{
@@ -239,8 +241,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float equal",
-			input: "1.1 == 2.2",
+			name: "float equal",
+			node: parse("1.1 == 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -251,8 +253,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float not equal",
-			input: "1.1 != 2.2",
+			name: "float not equal",
+			node: parse("1.1 != 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -263,8 +265,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float greater than",
-			input: "1.1 > 2.2",
+			name: "float greater than",
+			node: parse("1.1 > 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -275,8 +277,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float greater than or equal",
-			input: "1.1 >= 2.2",
+			name: "float greater than or equal",
+			node: parse("1.1 >= 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -287,8 +289,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float less than",
-			input: "1.1 < 2.2",
+			name: "float less than",
+			node: parse("1.1 < 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -299,8 +301,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float less than or equal",
-			input: "1.1 <= 2.2",
+			name: "float less than or equal",
+			node: parse("1.1 <= 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -311,8 +313,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float equal",
-			input: "1.1 == 2.2",
+			name: "float equal",
+			node: parse("1.1 == 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -323,8 +325,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "float not equal",
-			input: "1.1 != 2.2",
+			name: "float not equal",
+			node: parse("1.1 != 2.2"),
 			exp: expectation{
 				constants: []any{1.1, 2.2},
 				instructions: []vm.Instructions{
@@ -335,8 +337,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "mixed types 1",
-			input: "2.2 > 1",
+			name: "mixed types 1",
+			node: parse("2.2 > 1"),
 			exp: expectation{
 				constants: []any{2.2, 1},
 				instructions: []vm.Instructions{
@@ -347,8 +349,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "mixed types 2",
-			input: "1 < 2.2",
+			name: "mixed types 2",
+			node: parse("1 < 2.2"),
 			exp: expectation{
 				constants: []any{1, 2.2},
 				instructions: []vm.Instructions{
@@ -359,8 +361,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "bool equal",
-			input: "true == false",
+			name: "bool equal",
+			node: parse("true == false"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -370,8 +372,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "bool not equal",
-			input: "true != false",
+			name: "bool not equal",
+			node: parse("true != false"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -381,8 +383,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "bang",
-			input: "!true",
+			name: "bang",
+			node: parse("!true"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -391,8 +393,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "and",
-			input: "true && false",
+			name: "and",
+			node: parse("true && false"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -403,8 +405,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "or",
-			input: "true || false",
+			name: "or",
+			node: parse("true || false"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -415,8 +417,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "start with",
-			input: `"abc" sw "a"`,
+			name: "start with",
+			node: parse(`"abc" sw "a"`),
 			exp: expectation{
 				constants: []any{"abc", "a"},
 				instructions: []vm.Instructions{
@@ -427,8 +429,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "ends with",
-			input: `"abc" ew "c"`,
+			name: "ends with",
+			node: parse(`"abc" ew "c"`),
 			exp: expectation{
 				constants: []any{"abc", "c"},
 				instructions: []vm.Instructions{
@@ -439,8 +441,8 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "in",
-			input: `2 in ["a", 2, 3.3]`,
+			name: "in",
+			node: parse(`2 in ["a", 2, 3.3]`),
 			exp: expectation{
 				constants: []any{2, "a", 2, 3.3},
 				instructions: []vm.Instructions{
@@ -461,8 +463,8 @@ func TestBooleanExpressions(t *testing.T) {
 func TestStringExpressions(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "concatenation",
-			input: `"mess" + "age"`,
+			name: "concatenation",
+			node: parse(`"mess" + "age"`),
 			exp: expectation{
 				constants: []any{"mess", "age"},
 				instructions: []vm.Instructions{
@@ -473,8 +475,8 @@ func TestStringExpressions(t *testing.T) {
 			},
 		},
 		{
-			name:  "constant",
-			input: "\"message\"",
+			name: "constant",
+			node: parse(`"message"`),
 			exp: expectation{
 				constants: []any{"message"},
 				instructions: []vm.Instructions{
@@ -490,8 +492,8 @@ func TestStringExpressions(t *testing.T) {
 func TestArrays(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "array",
-			input: `["a", 2, 3.3]`,
+			name: "array",
+			node: parse(`["a", 2, 3.3]`),
 			exp: expectation{
 				constants: []any{"a", 2, 3.3},
 				instructions: []vm.Instructions{
@@ -503,8 +505,8 @@ func TestArrays(t *testing.T) {
 			},
 		},
 		{
-			name:  "array expression",
-			input: `[1, 3 > 2]`,
+			name: "array expression",
+			node: parse("[1, 3 > 2]"),
 			exp: expectation{
 				constants: []any{1, 3, 2},
 				instructions: []vm.Instructions{
@@ -517,8 +519,8 @@ func TestArrays(t *testing.T) {
 			},
 		},
 		{
-			name:  "array index",
-			input: "[1, 2, 3][1]",
+			name: "array index",
+			node: parse("[1, 2, 3][1]"),
 			exp: expectation{
 				constants: []any{1, 2, 3, 1},
 				instructions: []vm.Instructions{
@@ -539,8 +541,8 @@ func TestArrays(t *testing.T) {
 func TestGlobals(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "global",
-			input: "x",
+			name: "global",
+			node: parse("x"),
 			exp: expectation{
 				identifiers: []string{"x"},
 				instructions: []vm.Instructions{
@@ -549,8 +551,8 @@ func TestGlobals(t *testing.T) {
 			},
 		},
 		{
-			name:  "global expression",
-			input: "x < 2",
+			name: "global expression",
+			node: parse("x < 2"),
 			exp: expectation{
 				constants:   []any{2},
 				identifiers: []string{"x"},
@@ -569,8 +571,8 @@ func TestGlobals(t *testing.T) {
 func TestCallExpressions(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "builtin",
-			input: `upper("test")`,
+			name: "builtin",
+			node: parse(`upper("test")`),
 			exp: expectation{
 				constants:   []any{"test"},
 				identifiers: []string{"upper"},
@@ -578,6 +580,23 @@ func TestCallExpressions(t *testing.T) {
 					vm.Make(vm.OpGlobal, 0),
 					vm.Make(vm.OpConstant, 0),
 					vm.Make(vm.OpCall, 1),
+				},
+			},
+		},
+		{
+			name: "builtin (reuse)",
+			node: parse(`upper("test") eq upper("TEST")`),
+			exp: expectation{
+				constants:   []any{"test", "TEST"},
+				identifiers: []string{"upper"},
+				instructions: []vm.Instructions{
+					vm.Make(vm.OpGlobal, 0),
+					vm.Make(vm.OpConstant, 0),
+					vm.Make(vm.OpCall, 1),
+					vm.Make(vm.OpGlobal, 0),
+					vm.Make(vm.OpConstant, 1),
+					vm.Make(vm.OpCall, 1),
+					vm.Make(vm.OpEqual),
 				},
 			},
 		},
@@ -589,8 +608,8 @@ func TestCallExpressions(t *testing.T) {
 func TestNull(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "null",
-			input: `email eq null`,
+			name: "null",
+			node: parse(`email eq null`),
 			exp: expectation{
 				identifiers: []string{"email"},
 				instructions: []vm.Instructions{
@@ -608,8 +627,8 @@ func TestNull(t *testing.T) {
 func TestShortCircuiting(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "or jump",
-			input: "true or false",
+			name: "or jump",
+			node: parse("true or false"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpTrue),
@@ -620,8 +639,8 @@ func TestShortCircuiting(t *testing.T) {
 			},
 		},
 		{
-			name:  "and jump",
-			input: "false and true",
+			name: "and jump",
+			node: parse("false and true"),
 			exp: expectation{
 				instructions: []vm.Instructions{
 					vm.Make(vm.OpFalse),
@@ -639,8 +658,8 @@ func TestShortCircuiting(t *testing.T) {
 func TestMapAccess(t *testing.T) {
 	tests := []testCase{
 		{
-			name:  "root",
-			input: "x",
+			name: "root",
+			node: parse("x"),
 			exp: expectation{
 				identifiers: []string{"x"},
 				instructions: []vm.Instructions{
@@ -649,8 +668,8 @@ func TestMapAccess(t *testing.T) {
 			},
 		},
 		{
-			name:  "depth",
-			input: "x.y.z",
+			name: "depth",
+			node: parse("x.y.z"),
 			exp: expectation{
 				identifiers: []string{"x", "y", "z"},
 				instructions: []vm.Instructions{
@@ -665,17 +684,254 @@ func TestMapAccess(t *testing.T) {
 	testCompiler(t, tests)
 }
 
+func TestErrors(t *testing.T) {
+	tests := []testCase{
+		{
+			name: "invalid prefix operator",
+			node: &ast.PrefixExpression{
+				Token: token.Token{
+					Type:    token.Minus,
+					Literal: "-",
+				},
+				Operator: "$",
+				Right: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid prefix operand",
+			node: &ast.PrefixExpression{
+				Token: token.Token{
+					Type:    token.Minus,
+					Literal: "-",
+				},
+				Operator: "-",
+				Right:    new(invalidNode),
+			},
+			err: true,
+		},
+		{
+			name: "invalid infix operator",
+			node: &ast.InfixExpression{
+				Token: token.Token{
+					Type:    token.Plus,
+					Literal: "+",
+				},
+				Left: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+				Operator: "$",
+				Right: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid infix left operand",
+			node: &ast.InfixExpression{
+				Token: token.Token{
+					Type:    token.Plus,
+					Literal: "+",
+				},
+				Left:     new(invalidNode),
+				Operator: "+",
+				Right: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid infix right operand",
+			node: &ast.InfixExpression{
+				Token: token.Token{
+					Type:    token.Plus,
+					Literal: "+",
+				},
+				Operator: "+",
+				Left: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+				Right: new(invalidNode),
+			},
+			err: true,
+		},
+		{
+			name: "invalid array expression",
+			node: &ast.ArrayLiteral{
+				Token: token.Token{
+					Type:    token.LBracket,
+					Literal: "[",
+				},
+				Elements: []ast.Node{
+					new(invalidNode),
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid index expression (left)",
+			node: &ast.IndexExpression{
+				Token: token.Token{
+					Type:    token.LBracket,
+					Literal: "[",
+				},
+				Left: new(invalidNode),
+				Index: &ast.IntegerLiteral{
+					Token: token.Token{
+						Type:    token.Int,
+						Literal: "1",
+					},
+					Value: 1,
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid index expression (index)",
+			node: &ast.IndexExpression{
+				Token: token.Token{
+					Type:    token.LBracket,
+					Literal: "[",
+				},
+				Left: &ast.ArrayLiteral{
+					Token: token.Token{
+						Type:    token.LBracket,
+						Literal: "[",
+					},
+					Elements: []ast.Node{
+						&ast.IntegerLiteral{
+							Token: token.Token{
+								Type:    token.Int,
+								Literal: "1",
+							},
+							Value: 1,
+						},
+					},
+				},
+				Index: new(invalidNode),
+			},
+			err: true,
+		},
+		{
+			name: "invalid member expression (target)",
+			node: &ast.MemberExpression{
+				Token: token.Token{
+					Type:    token.Stop,
+					Literal: ".",
+				},
+				Left: new(invalidNode),
+				Member: &ast.Identifier{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "y",
+					},
+					Value: "y",
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid member expression (member)",
+			node: &ast.MemberExpression{
+				Token: token.Token{
+					Type:    token.Stop,
+					Literal: ".",
+				},
+				Left: &ast.Identifier{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "x",
+					},
+					Value: "x",
+				},
+				Member: new(invalidNode),
+			},
+			err: true,
+		},
+		{
+			name: "invalid call expression (target)",
+			node: &ast.CallExpression{
+				Token: token.Token{
+					Type:    token.LParen,
+					Literal: "(",
+				},
+				Function: new(invalidNode),
+				Arguments: []ast.Node{
+					&ast.IntegerLiteral{
+						Token: token.Token{
+							Type:    token.Int,
+							Literal: "1",
+						},
+						Value: 1,
+					},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "invalid call expression (args)",
+			node: &ast.CallExpression{
+				Token: token.Token{
+					Type:    token.LParen,
+					Literal: "(",
+				},
+				Function: &ast.Identifier{
+					Token: token.Token{
+						Type:    token.Ident,
+						Literal: "x",
+					},
+					Value: "x",
+				},
+				Arguments: []ast.Node{
+					new(invalidNode),
+				},
+			},
+			err: true,
+		},
+	}
+
+	testCompiler(t, tests)
+}
+
 func testCompiler(t *testing.T, tests []testCase) {
 	t.Helper()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			statement := parse(tt.input)
-
 			c := compiler.New()
-			p, err := c.Compile(statement)
-			if err != nil {
+			p, err := c.Compile(tt.node)
+			if err != nil && !tt.err {
 				t.Fatalf("got %v, expected nil", err)
+			}
+			if err == nil && tt.err {
+				t.Fatal("got nil, expected error")
+			}
+			if err != nil {
+				return
 			}
 
 			assertInstructions(t, p.Instructions, tt.exp.instructions)
@@ -815,4 +1071,16 @@ func parse(input string) ast.Node {
 		panic(err)
 	}
 	return n
+}
+
+type invalidNode struct{}
+
+var _ ast.Node = (*invalidNode)(nil)
+
+func (n *invalidNode) TokenLiteral() string {
+	return "invalid"
+}
+
+func (n *invalidNode) String() string {
+	return "invalid"
 }
