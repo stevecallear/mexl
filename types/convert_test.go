@@ -183,3 +183,16 @@ func TestCoerce(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertDefault(t *testing.T) {
+	t.Run("should panic on invalid type", func(t *testing.T) {
+
+		defer func() {
+			if err := recover(); err == nil { // err is nil
+				t.Error("got nil, expected panic")
+			}
+		}()
+
+		types.Convert(new(types.Null), types.TypeFunc)
+	})
+}
