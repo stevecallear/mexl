@@ -205,6 +205,55 @@ func TestOperatorPrecedence(t *testing.T) {
 	}
 }
 
+func TestErrors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "invalid expression",
+			input: "!",
+		},
+		{
+			name:  "multiple expressions",
+			input: "x y",
+		},
+		{
+			name:  "invalid prefix",
+			input: "$x",
+		},
+		{
+			name:  "invalid infix",
+			input: "1 $ 2",
+		},
+		{
+			name:  "invalid group",
+			input: "(1 + 2",
+		},
+		{
+			name:  "invalid index",
+			input: "x[1",
+		},
+		{
+			name:  "invalid call",
+			input: "x(1",
+		},
+		{
+			name:  "invalid float",
+			input: "1.2.3",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := parser.New(tt.input).Parse()
+			if err == nil {
+				t.Fatal("got nil, expected error")
+			}
+		})
+	}
+}
+
 func assertIdentifier(t *testing.T, e ast.Node, value string) {
 	t.Helper()
 
