@@ -178,8 +178,23 @@ func TestArrays(t *testing.T) {
 		},
 		{
 			name: "index operator",
-			prog: compile(`[1, 2, 3][1]`),
+			prog: compile("[1, 2, 3][1]"),
 			exp:  2,
+		},
+		{
+			name: "index operator out of range (positive)",
+			prog: compile("[1][1]"),
+			exp:  nil,
+		},
+		{
+			name: "index operator out of range (negative)",
+			prog: compile("[1][-1]"),
+			exp:  nil,
+		},
+		{
+			name: "index operator on null",
+			prog: compile("null[0]"),
+			exp:  nil,
 		},
 	}
 
