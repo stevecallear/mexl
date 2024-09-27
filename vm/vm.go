@@ -456,10 +456,19 @@ func (vm *VM) execIndexExpression() error {
 	left := vm.pop()
 
 	switch {
+	case left.Type() == types.TypeNull && index.Type() == types.TypeInteger:
+		vm.push(objNull)
+
 	case left.Type() == types.TypeArray && index.Type() == types.TypeInteger:
 		a := left.(types.Array)
 		i := index.(*types.Integer).Value
-		vm.push(a[i])
+
+		if i >= 0 && int(i) < len(a) {
+			vm.push(a[i])
+		} else {
+			vm.push(objNull)
+		}
+
 	default:
 		return fmt.Errorf("index operator not supported: %s", left.Type())
 	}
