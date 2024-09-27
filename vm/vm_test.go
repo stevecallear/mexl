@@ -277,6 +277,78 @@ func TestNull(t *testing.T) {
 	testVM(t, tests)
 }
 
+func TestErrors(t *testing.T) {
+	tests := []testCase{
+		{
+			name: "invalid binary op types",
+			prog: compile(`"a" + 1`),
+			err:  true,
+		},
+		{
+			name: "invalid float binary op type",
+			prog: compile("1.1 % 2.2"),
+			err:  true,
+		},
+		{
+			name: "invalid string binary op type",
+			prog: compile(`"a" - "b"`),
+			err:  true,
+		},
+		{
+			name: "invalid comparison op type",
+			prog: compile("[1] le [2]"),
+			err:  true,
+		},
+		{
+			name: "invalid int comparison op",
+			prog: compile("1 sw 2"),
+			err:  true,
+		},
+		{
+			name: "invalid float comparison op",
+			prog: compile("1.1 sw 2.2"),
+			err:  true,
+		},
+		{
+			name: "invalid bool comparison op",
+			prog: compile("true ge false"),
+			err:  true,
+		},
+		{
+			name: "invalid string comparison op",
+			prog: compile(`"a" ge "b"`),
+			err:  true,
+		},
+		{
+			name: "invalid negation type",
+			prog: compile(`-"a"`),
+			err:  true,
+		},
+		{
+			name: "invalid in op type",
+			prog: compile("1 in 2"),
+			err:  true,
+		},
+		{
+			name: "invalid index op type",
+			prog: compile(`"a"[0]`),
+			err:  true,
+		},
+		{
+			name: "invalid member op type",
+			prog: compile(`"a".x`),
+			err:  true,
+		},
+		{
+			name: "invalid call op type",
+			prog: compile(`"a"(1)`),
+			err:  true,
+		},
+	}
+
+	testVM(t, tests)
+}
+
 func testVM(t *testing.T, tests []testCase) {
 	t.Helper()
 
