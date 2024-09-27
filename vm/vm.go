@@ -215,7 +215,7 @@ func (vm *VM) execBinaryStringOp(op Opcode, left, right types.Object) error {
 	r := right.(*types.String).Value
 
 	if op != OpAdd {
-		return fmt.Errorf("unknown integer operator: %d", op)
+		return fmt.Errorf("unknown string operator: %d", op)
 	}
 
 	vm.push(&types.String{Value: l + r})

@@ -5,7 +5,26 @@ import (
 
 	"github.com/stevecallear/mexl/compiler"
 	"github.com/stevecallear/mexl/parser"
+	"github.com/stevecallear/mexl/vm"
 )
+
+func TestMake(t *testing.T) {
+	t.Run("should return empty for invalid opcode", func(t *testing.T) {
+		act := vm.Make(vm.OpInvalid)
+		if len(act) != 0 {
+			t.Errorf("got %v, expected empty", act)
+		}
+	})
+}
+
+func TestLookup(t *testing.T) {
+	t.Run("should return error for invalid opcode", func(t *testing.T) {
+		_, err := vm.Lookup(byte(vm.OpInvalid))
+		if err == nil {
+			t.Error("got nil, expected error")
+		}
+	})
+}
 
 func TestInstructions_String(t *testing.T) {
 	n, err := parser.New(`email ne null and email ew "@test.com"`).Parse()
