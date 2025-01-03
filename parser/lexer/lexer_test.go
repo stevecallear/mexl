@@ -125,9 +125,12 @@ func TestLexer_NextToken(t *testing.T) {
 		},
 		{
 			name:  "strings",
-			input: "\"abc 123\" \"abc",
+			input: `"abc 123" "\"abc\"" "\\" "\x" "abc`,
 			exp: []token.Token{
 				{Type: token.String, Literal: "abc 123"},
+				{Type: token.String, Literal: `"abc"`},
+				{Type: token.String, Literal: `\`},
+				{Type: token.Illegal, Literal: `\x`},
 				{Type: token.Illegal, Literal: "abc"},
 			},
 		},
