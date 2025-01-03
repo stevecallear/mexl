@@ -94,6 +94,11 @@ func TestBuiltIn(t *testing.T) {
 			err:  true,
 		},
 		{
+			name: "unmarshal error",
+			prog: compile(`unmarshal("{")`),
+			err:  true,
+		},
+		{
 			name: "unmarshal",
 			prog: compile(`unmarshal("{\"a\":1}")`),
 			exp:  map[string]any{"a": float64(1)},
