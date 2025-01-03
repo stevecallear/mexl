@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"strings"
+
 	"github.com/stevecallear/mexl/ast/token"
 )
 
@@ -11,23 +13,27 @@ type Lexer struct {
 	ch      byte
 }
 
-var keywords = map[string]token.Type{
-	"true":  token.True,
-	"false": token.False,
-	"and":   token.And,
-	"or":    token.Or,
-	"not":   token.Bang,
-	"eq":    token.Equal,
-	"ne":    token.NotEqual,
-	"lt":    token.LessThan,
-	"gt":    token.GreaterThan,
-	"le":    token.LessThanOrEqual,
-	"ge":    token.GreaterThanOrEqual,
-	"sw":    token.StartsWith,
-	"ew":    token.EndsWith,
-	"in":    token.In,
-	"null":  token.Null,
-}
+var (
+	keywords = map[string]token.Type{
+		"true":  token.True,
+		"false": token.False,
+		"and":   token.And,
+		"or":    token.Or,
+		"not":   token.Bang,
+		"eq":    token.Equal,
+		"ne":    token.NotEqual,
+		"lt":    token.LessThan,
+		"gt":    token.GreaterThan,
+		"le":    token.LessThanOrEqual,
+		"ge":    token.GreaterThanOrEqual,
+		"sw":    token.StartsWith,
+		"ew":    token.EndsWith,
+		"in":    token.In,
+		"null":  token.Null,
+	}
+
+	escapeReplacer = strings.NewReplacer(`\"`, `"`, `\\`, `\`)
+)
 
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
@@ -230,21 +236,36 @@ func (l *Lexer) readNumber() token.Token {
 }
 
 func (l *Lexer) readString() token.Token {
+	const quote = '"'
+	const escape = '\\'
+
 	p := l.pos + 1
 	t := token.Token{Type: token.String}
 
+loop:
 	for {
 		l.readChar()
-		if l.ch == 0 {
+		switch l.ch {
+		case 0:
 			t.Type = token.Illegal
-			break
-		}
-		if l.ch == '"' {
-			break
+			break loop
+
+		case quote:
+			break loop
+
+		case escape:
+			l.readChar()
+			switch l.ch {
+			case quote, escape:
+				// continue
+
+			default:
+				t.Type = token.Illegal
+			}
 		}
 	}
 
-	t.Literal = l.input[p:l.pos]
+	t.Literal = escapeReplacer.Replace(l.input[p:l.pos])
 	return t
 }
 
