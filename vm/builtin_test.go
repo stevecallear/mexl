@@ -84,6 +84,16 @@ func TestBuiltIn(t *testing.T) {
 			exp:  nil,
 		},
 		{
+			name: "unmarshal",
+			prog: compile(`unmarshal("{\"a\":1}")`),
+			exp:  map[string]any{"a": float64(1)},
+		},
+		{
+			name: "unmarshal null",
+			prog: compile(`unmarshal(null)`),
+			exp:  nil,
+		},
+		{
 			name: "custom",
 			prog: compile(`reverse("abc")`),
 			env: map[string]types.Object{

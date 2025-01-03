@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -65,6 +66,29 @@ var builtIns = map[string]types.Func{
 
 		default:
 			return nil, fmt.Errorf("upper: wrong arg type: %s, expected %s", args[0].Type(), types.TypeString)
+		}
+	},
+
+	"unmarshal": func(args ...types.Object) (types.Object, error) {
+		if err := expectArgsLen("unmarshal", args, 1); err != nil {
+			return nil, err
+		}
+
+		switch args[0].Type() {
+		case types.TypeNull:
+			return objNull, nil
+
+		case types.TypeString:
+			var m map[string]any
+			err := json.Unmarshal([]byte(args[0].(*types.String).Value), &m)
+			if err != nil {
+				return nil, err
+			}
+
+			return types.ToMap(m)
+
+		default:
+			return nil, fmt.Errorf("unmarshal: wrong arg type: %s, expected %s", args[0].Type(), types.TypeString)
 		}
 	},
 }

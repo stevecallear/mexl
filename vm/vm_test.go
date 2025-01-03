@@ -402,19 +402,21 @@ func assertObject(t *testing.T, act types.Object, exp any) {
 		assertStringObject(t, act, exp)
 	case []any:
 		assertArrayObject(t, act, exp)
+	case map[string]any:
+		assertMapObject(t, act, exp)
 	default:
 		t.Errorf("got %s, expected %T", act.Type(), exp)
 	}
 }
 
-func assertNullObject(t *testing.T, act any) {
+func assertNullObject(t *testing.T, act types.Object) {
 	_, ok := act.(*types.Null)
 	if !ok {
 		t.Errorf("got %T, expected types.Null", act)
 	}
 }
 
-func assertIntegerObject(t *testing.T, act any, exp int64) {
+func assertIntegerObject(t *testing.T, act types.Object, exp int64) {
 	obj, ok := act.(*types.Integer)
 	if !ok {
 		t.Errorf("got %T, expected types.Integer", act)
@@ -426,7 +428,7 @@ func assertIntegerObject(t *testing.T, act any, exp int64) {
 	}
 }
 
-func assertFloatObject(t *testing.T, act any, exp float64) {
+func assertFloatObject(t *testing.T, act types.Object, exp float64) {
 	obj, ok := act.(*types.Float)
 	if !ok {
 		t.Errorf("got %T, expected types.Float", act)
@@ -438,7 +440,7 @@ func assertFloatObject(t *testing.T, act any, exp float64) {
 	}
 }
 
-func assertBooleanObject(t *testing.T, act any, exp bool) {
+func assertBooleanObject(t *testing.T, act types.Object, exp bool) {
 	obj, ok := act.(*types.Boolean)
 	if !ok {
 		t.Errorf("got %T, expected types.Boolean", act)
@@ -450,7 +452,7 @@ func assertBooleanObject(t *testing.T, act any, exp bool) {
 	}
 }
 
-func assertStringObject(t *testing.T, act any, exp string) {
+func assertStringObject(t *testing.T, act types.Object, exp string) {
 	obj, ok := act.(*types.String)
 	if !ok {
 		t.Errorf("got %T, expected types.String", act)
@@ -462,7 +464,7 @@ func assertStringObject(t *testing.T, act any, exp string) {
 	}
 }
 
-func assertArrayObject(t *testing.T, act any, exp []any) {
+func assertArrayObject(t *testing.T, act types.Object, exp []any) {
 	obj, ok := act.(types.Array)
 	if !ok {
 		t.Errorf("got %T, expected types.Array", act)
@@ -471,6 +473,22 @@ func assertArrayObject(t *testing.T, act any, exp []any) {
 
 	for i, exp := range exp {
 		assertObject(t, obj[i], exp)
+	}
+}
+
+func assertMapObject(t *testing.T, act types.Object, exp map[string]any) {
+	obj, ok := act.(types.Map)
+	if !ok {
+		t.Errorf("got %T, expected types.Map", act)
+		return
+	}
+
+	if act, exp := len(obj), len(exp); act != exp {
+		t.Errorf("got %d elements, expected %d", act, exp)
+	}
+
+	for k, exp := range exp {
+		assertObject(t, obj[k], exp)
 	}
 }
 
