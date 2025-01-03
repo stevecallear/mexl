@@ -84,6 +84,16 @@ func TestBuiltIn(t *testing.T) {
 			exp:  nil,
 		},
 		{
+			name: "unmarshal args count error",
+			prog: compile(`unmarshal("{}", "{}")`),
+			err:  true,
+		},
+		{
+			name: "unmarshal arg type error",
+			prog: compile(`unmarshal(1)`),
+			err:  true,
+		},
+		{
 			name: "unmarshal",
 			prog: compile(`unmarshal("{\"a\":1}")`),
 			exp:  map[string]any{"a": float64(1)},
